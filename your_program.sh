@@ -21,4 +21,7 @@ set -e # Exit early if any commands fail
 #
 # - Edit this to change how your program runs locally
 # - Edit .codecrafters/run.sh to change how your program runs remotely
-exec /tmp/codecrafters-build-claude-code-rust/release/codecrafters-claude-code "$@"
+exec target/debug/codecrafters-claude-code.exe "$@"
+
+# Pause at the end to see what happened
+read -p "Press any key to continue ..."
