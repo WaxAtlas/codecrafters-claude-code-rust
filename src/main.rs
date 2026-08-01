@@ -64,9 +64,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     eprintln!("Logs from your program will appear here!");
 
-    if let Some(content) =
-        response["choices"]["tool_calls"]["id"]["type"]["function"]["name"]["arguments"].as_str()
-    {
+    if let Some(content) = response["choices"].as_str() {
         println!("{}", content);
     } else {
         println!("No content");
