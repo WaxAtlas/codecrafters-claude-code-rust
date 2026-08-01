@@ -67,7 +67,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(content) =
         response["choices"]["tool_calls"]["id"]["type"]["function"]["name"]["arguments"].as_str()
     {
-        eprintln!("{}", content);
+        println!("{}", content);
+    } else {
+        println!("No content");
     }
 
     if let Some(content) = response["choices"][0]["message"]["content"].as_str() {
