@@ -100,12 +100,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let file_path = arguments["file_path"].as_str().unwrap();
                     let write_content = arguments["content"].as_str().unwrap();
                     let results = std::fs::write(file_path, write_content)?;
-                    eprintln!("{:?}", results);
                     messages.push(
                         json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": results}),
                     );
                 }
             }
+            eprintln!("{:?}", messages);
         } else if let Some(content) = response["choices"][0]["message"]["content"].as_str() {
             println!("{}", content);
             break;
