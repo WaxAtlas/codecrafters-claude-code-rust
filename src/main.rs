@@ -75,7 +75,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .create_byot(json!({
                 "messages": messages,
                 "model": "anthropic/claude-haiku-4.5",
-                "tools": tools,
+                "tools": [{
+
+            "type": "function",
+            "function": {
+                "name": "Read",
+                "description": "Read and return the contents of a file",
+                "parameters": {
+                    "type": "object",
+                    "required": ["file_path"],
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "The path to the file to read",
+                        }
+                    },
+                }
+            }},
+                ]
+                // tools,
             }))
             .await?;
 
@@ -104,8 +122,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     );
                 }
             }
-        } else if let Some(_content) = response["choices"][0]["message"]["content"].as_str() {
-            // println!("{}", content);
+        } else if let Some(content) = response["choices"][0]["message"]["content"].as_str() {
+            println!("{}", content);
             break;
         }
     }
