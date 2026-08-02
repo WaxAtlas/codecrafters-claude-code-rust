@@ -98,7 +98,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     );
                 } else if name == "Write" {
                     let file_path = arguments["file_path"].as_str().unwrap();
-                    let write_contents = arguments["contents"].as_str().unwrap();
+                    let write_content = arguments["content"].as_str().unwrap();
                     let results = std::fs::write(file_path, write_contents)?;
                     eprintln!("{:?}", results);
                     messages.push(
