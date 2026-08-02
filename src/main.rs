@@ -96,7 +96,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     messages.push(
                         json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": contents}),
                     );
-                } else if name == "Write" {
+                }
+                if name == "Write" {
                     let file_path = arguments["file_path"].as_str().unwrap();
                     let write_content = arguments["content"].as_str().unwrap();
                     let results = std::fs::write(file_path, write_content)?;
