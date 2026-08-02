@@ -122,8 +122,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 if name == "Bash" {
                     let command = arguments["command"].as_str().unwrap();
+                    let command_args: Vec<&str> = command.split_inclusive('-').collect();
                     eprintln!("{}", command);
                     let output = Command::new(command)
+                        .args(command_args)
                         .output()
                         .expect("Failed to execute command.");
                     content = String::from_utf8(output.stdout).unwrap();
