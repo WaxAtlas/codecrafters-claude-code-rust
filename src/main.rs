@@ -124,7 +124,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let command = arguments["command"].as_str().unwrap();
                     let command_args: Vec<&str> = command.split('-').collect();
                     eprintln!("{:?}", command_args);
-                    let output = Command::new(command_args[0])
+                    let output = Command::new(command_args[0].trim())
                         .arg(String::from("-{command_args[1]}"))
                         .output()
                         .expect("Failed to execute command.");
