@@ -28,54 +28,56 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = Client::with_config(config);
 
-    #[allow(unused_variables)]
-    let response: Value = client
-        .chat()
-        .create_byot(json!({
-            "messages": [
-                {
-                    "role": "user",
-                    "content": args.prompt
-                }
-            ],
-            "model": "anthropic/claude-haiku-4.5",
-            "tools": [
-                {
-                  "type": "function",
-                  "function": {
-                      "name": "Read",
-                      "description": "Read and return the contents of a file",
-                      "parameters": {
-                          "type": "object",
-                          "properties": {
-                              "file_path": {
-                                  "type": "string",
-                                  "description": "The path to the file to read",
-                              }
-                          },
-                          "required": ["file_path"]
+    let mut messages = vec![json!({"role": "user", "content": args.prompt})];
+
+    loop {
+        #[allow(unused_variables)]
+        let response: Value = client
+            .chat()
+            .create_byot(json!({
+                "messages": messages[0],
+                "model": "anthropic/claude-haiku-4.5",
+                "tools": [
+                    {
+                      "type": "function",
+                      "function": {
+                          "name": "Read",
+                          "description": "Read and return the contents of a file",
+                          "parameters": {
+                              "type": "object",
+                              "properties": {
+                                  "file_path": {
+                                      "type": "string",
+                                      "description": "The path to the file to read",
+                                  }
+                              },
+                              "required": ["file_path"]
+                          }
                       }
                   }
-              }
-          ],
-        }))
-        .await?;
+              ],
+            }))
+            .await?;
 
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
-    eprintln!("Logs from your program will appear here!");
-
-    if let Some(tool_calls) = response["choices"][0]["message"]["tool_calls"].as_array() {
-        let tool_call = &tool_calls[0];
-        let name = tool_call["function"]["name"].as_str().unwrap();
-        let arguments: Value =
-            serde_json::from_str(tool_call["function"]["arguments"].as_str().unwrap())?;
-        if name == "Read" {
-            let file_path = arguments["file_path"].as_str().unwrap();
-            let contents = std::fs::read_to_string(file_path)?;
-            print!("{}", contents);
+        if let Some(tool_calls) = response["choices"][0]["message"]["tool_calls"].as_array() {
+            for tool_call in tool_calls {
+                let mut contents: String = String::new();
+                if tool_call["type"] == "function" {
+                    let name = tool_call["function"]["name"].as_str().unwrap();
+                    let arguments: Value =
+                        serde_json::from_str(tool_call["function"]["arguments"].as_str().unwrap())?;
+                    if name == "Read" {
+                        let file_path = arguments["file_path"].as_str().unwrap();
+                        contents = std::fs::read_to_string(file_path)?;
+                    }
+                }
+                messages.push(
+                    json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": contents}),
+                );
+            }
+        } else {
+            break;
         }
-    } else if let Some(content) = response["choices"][0]["message"]["content"].as_str() {
-        println!("{}", content);
     }
 
     Ok(())
