@@ -30,8 +30,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut messages = vec![json!({"role": "user", "content": args.prompt})];
 
-    let tools = json!(
-        {
+    let tools = json!([
+            {
             "type": "function",
             "function": {
                 "name": "Read",
@@ -46,7 +46,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     },
                 }
-            },
+            }},
+            {
             "type": "function",
             "function": {
                 "name": "Write",
@@ -67,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-    );
+    ]);
 
     loop {
         let response: Value = client
@@ -75,25 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .create_byot(json!({
                 "messages": messages,
                 "model": "anthropic/claude-haiku-4.5",
-                "tools": [{
-
-            "type": "function",
-            "function": {
-                "name": "Read",
-                "description": "Read and return the contents of a file",
-                "parameters": {
-                    "type": "object",
-                    "required": ["file_path"],
-                    "properties": {
-                        "file_path": {
-                            "type": "string",
-                            "description": "The path to the file to read",
-                        }
-                    },
-                }
-            }},
-                ]
-                // tools,
+                "tools": tools,
             }))
             .await?;
 
