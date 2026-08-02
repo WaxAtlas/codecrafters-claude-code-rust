@@ -122,13 +122,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 if name == "Bash" {
                     let command = arguments["command"].as_str().unwrap();
-                    let command_args: Vec<&str> = command.split('-').collect();
-                    eprintln!("{}, -{}", command_args[0].trim(), command_args[1]);
-                    let output = Command::new(command_args[0].trim())
-                        .arg(String::from("-{command_args[1]}"))
-                        .output()
-                        .expect("Failed to execute command.");
-                    content = String::from_utf8(output.stdout).unwrap();
+                    match Command::new("bash").arg("-c").arg(command).output() {
+                        Ok(output) => {
+                            content = String::from_utf8(output.stdout).unwrap();
+                        }
+                        Err(e) => eprintln!("Error executing command '{command}': {e}"),
+                    }
                 }
                 messages.push(
                     json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": content}),
