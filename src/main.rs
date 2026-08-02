@@ -58,6 +58,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }))
             .await?;
 
+        let message = &response["choices"][0]["message"];
+        messages.push(message.clone());
+
         if let Some(tool_calls) = response["choices"][0]["message"]["tool_calls"].as_array() {
             for tool_call in tool_calls {
                 let mut contents: String = String::new();
@@ -71,9 +74,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     eprintln!("{}", contents);
                 }
-                messages.push(
-                    json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": contents}),
-                );
+                // messages.push(
+                //     json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": contents}),
+                // );
             }
         } else if let Some(content) = response["choices"][0]["message"]["content"].as_str() {
             println!("{}", content);
