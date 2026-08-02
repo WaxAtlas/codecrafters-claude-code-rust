@@ -90,6 +90,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if name == "Read" {
                     let file_path = arguments["file_path"].as_str().unwrap();
                     let contents = std::fs::read_to_string(file_path)?;
+                    eprintln!("{}", contents);
                     messages.push(
                         json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": contents}),
                     );
