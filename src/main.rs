@@ -1,7 +1,10 @@
 use async_openai::{Client, config::OpenAIConfig};
 use clap::Parser;
 use serde_json::{Value, json};
-use std::{env, process};
+use std::{
+    env,
+    process::{self, Command},
+};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -68,7 +71,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     },
                 }
             }
-        }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "Bash",
+                "description": "Execute a shell command",
+                "parameters": {
+                    "type": "object",
+                    "required": ["command"],
+                    "properties": {
+                        "command": {
+                            "type": "string",
+                            "description": "The command to execute",
+                        }
+                    },
+                }
+            }
+        },
     ]);
 
     loop {
@@ -86,25 +106,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(tool_calls) = response["choices"][0]["message"]["tool_calls"].as_array() {
             for tool_call in tool_calls {
+                let mut content = String::new();
                 let name = tool_call["function"]["name"].as_str().unwrap();
                 let arguments: Value =
                     serde_json::from_str(tool_call["function"]["arguments"].as_str().unwrap())?;
                 if name == "Read" {
                     let file_path = arguments["file_path"].as_str().unwrap();
-                    let contents = std::fs::read_to_string(file_path)?;
-                    eprintln!("{}", contents);
-                    messages.push(
-                        json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": contents}),
-                    );
+                    content = std::fs::read_to_string(file_path)?;
                 }
                 if name == "Write" {
                     let file_path = arguments["file_path"].as_str().unwrap();
                     let write_content = arguments["content"].as_str().unwrap();
                     std::fs::write(file_path, write_content)?;
-                    messages.push(
-                        json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": "File write complete."}),
-                    );
+                    content = String::from("File write complete.");
                 }
+                if name == "Bash" {
+                    let command = arguments["command"].as_str().unwrap();
+                    let output = Command::new(command)
+                        .output()
+                        .expect("Failed to execute command.");
+                    content = String::from_utf8(output.stdout).unwrap();
+                }
+                messages.push(
+                    json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": content}),
+                );
             }
         } else if let Some(content) = response["choices"][0]["message"]["content"].as_str() {
             println!("{}", content);
