@@ -104,8 +104,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     );
                 }
             }
-        } else if let Some(content) = response["choices"][0]["message"]["content"].as_str() {
-            println!("{}", content);
+        } else if let Some(_content) = response["choices"][0]["message"]["content"].as_str() {
+            // println!("{}", content);
             break;
         }
     }
