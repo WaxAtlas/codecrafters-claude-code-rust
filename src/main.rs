@@ -30,51 +30,54 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut messages = vec![json!({"role": "user", "content": args.prompt})];
 
+    let tools = json!([
+        {
+            "type": "function",
+            "function": {
+                "name": "Read",
+                "description": "Read and return the contents of a file",
+                "parameters": {
+                    "type": "object",
+                    "required": ["file_path"],
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "The path to the file to read",
+                        }
+                    },
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "Write",
+                "description": "Write content to a file",
+                "parameters": {
+                    "type": "object",
+                    "required": ["file_path", "content"],
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "The path to the file to write to",
+                        },
+                        "content": {
+                            "type": "string",
+                            "description": "The content to write to the file",
+                        }
+                    },
+                }
+            }
+        }
+    ]);
+
     loop {
         let response: Value = client
             .chat()
             .create_byot(json!({
                 "messages": messages,
                 "model": "anthropic/claude-haiku-4.5",
-                "tools":[
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": "Read",
-                            "description": "Read and return the contents of a file",
-                            "parameters": {
-                                "type": "object",
-                                "required": ["file_path"],
-                                "properties": {
-                                    "file_path": {
-                                        "type": "string",
-                                        "description": "The path to the file to read",
-                                    }
-                                },
-                            }
-                        }
-                    },
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": "Write",
-                            "description": "Write content to a file",
-                            "parameters": {
-                                "type": "object",
-                                "required": ["file_path", "content"],
-                                "properties": {
-                                    "file_path": {
-                                        "type": "string",
-                                        "description": "The path to the file to write to",
-                                    },
-                                    "content": {
-                                        "type": "string",
-                                        "description": "The content to write to the file",
-                                    }
-                                },
-                            }
-                        }
-                    }]
+                "tools": tools,
             }))
             .await?;
 
@@ -95,8 +98,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     );
                 } else if name == "Write" {
                     let file_path = arguments["file_path"].as_str().unwrap();
-                    let write_content = arguments["content"].as_str().unwrap();
-                    let results = std::fs::write(file_path, write_content)?;
+                    let write_contents = arguments["contents"].as_str().unwrap();
+                    let results = std::fs::write(file_path, write_contents)?;
                     eprintln!("{:?}", results);
                     messages.push(
                         json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": results}),
