@@ -31,7 +31,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut messages = vec![json!({"role": "user", "content": args.prompt})];
 
     loop {
-        #[allow(unused_variables)]
         let response: Value = client
             .chat()
             .create_byot(json!({
@@ -70,12 +69,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let file_path = arguments["file_path"].as_str().unwrap();
                         contents = std::fs::read_to_string(file_path)?;
                     }
+                    eprintln!("{}", contents);
                 }
                 messages.push(
                     json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": contents}),
                 );
             }
-        } else {
+        } else if let Some(content) = response["choices"][0]["message"]["content"].as_str() {
+            println!("{}", content);
             break;
         }
     }
