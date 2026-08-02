@@ -123,7 +123,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if name == "Bash" {
                     let command = arguments["command"].as_str().unwrap();
                     let command_args: Vec<&str> = command.split_inclusive('-').collect();
-                    eprintln!("{}", command);
+                    eprintln!("{:?}", command_args);
                     let output = Command::new(command_args[0])
                         .arg(command_args[1])
                         .output()
