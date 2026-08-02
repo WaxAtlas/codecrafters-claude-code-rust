@@ -122,6 +122,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 if name == "Bash" {
                     let command = arguments["command"].as_str().unwrap();
+                    eprintln!("{}", command);
                     let output = Command::new(command)
                         .output()
                         .expect("Failed to execute command.");
