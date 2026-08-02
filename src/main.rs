@@ -87,11 +87,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let name = tool_call["function"]["name"].as_str().unwrap();
                 let arguments: Value =
                     serde_json::from_str(tool_call["function"]["arguments"].as_str().unwrap())?;
-
-                eprintln!("{}", arguments);
                 if name == "Read" {
                     let file_path = arguments["file_path"].as_str().unwrap();
                     let contents = std::fs::read_to_string(file_path)?;
+                    eprintln!("{}", contents);
                     messages.push(
                         json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": contents}),
                     );
@@ -99,6 +98,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let file_path = arguments["file_path"].as_str().unwrap();
                     let write_contents = arguments["contents"].as_str().unwrap();
                     let results = std::fs::write(file_path, write_contents)?;
+                    eprintln!("{:?}", results);
                     messages.push(
                         json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": results}),
                     );
