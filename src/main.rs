@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut messages = vec![json!({"role": "user", "content": args.prompt})];
 
-    let tools = json!(
+    let _tools = json!(
         {
             "type": "function",
             "function": {
@@ -73,10 +73,46 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let response: Value = client
             .chat()
             .create_byot(json!({
-                "messages": messages,
-                "model": "anthropic/claude-haiku-4.5",
-                "tools": tools,
-            }))
+                    "messages": messages,
+                    "model": "anthropic/claude-haiku-4.5",
+                    "tools":
+            {
+                "type": "function",
+                "function": {
+                    "name": "Read",
+                    "description": "Read and return the contents of a file",
+                    "parameters": {
+                        "type": "object",
+                        "required": ["file_path"],
+                        "properties": {
+                            "file_path": {
+                                "type": "string",
+                                "description": "The path to the file to read",
+                            }
+                        },
+                    }
+                },
+                "type": "function",
+                "function": {
+                    "name": "Write",
+                    "description": "Write content to a file",
+                    "parameters": {
+                        "type": "object",
+                        "required": ["file_path", "content"],
+                        "properties": {
+                            "file_path": {
+                                "type": "string",
+                                "description": "The path to the file to write to",
+                            },
+                            "content": {
+                                "type": "string",
+                                "description": "The content to write to the file",
+                            }
+                        },
+                    }
+                }
+            }
+                }))
             .await?;
 
         let message = &response["choices"][0]["message"];
