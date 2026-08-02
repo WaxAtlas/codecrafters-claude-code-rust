@@ -84,25 +84,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(tool_calls) = response["choices"][0]["message"]["tool_calls"].as_array() {
             for tool_call in tool_calls {
-                if tool_call["type"] == "function" {
-                    let name = tool_call["function"]["name"].as_str().unwrap();
-                    let arguments: Value =
-                        serde_json::from_str(tool_call["function"]["arguments"].as_str().unwrap())?;
-                    if name == "Read" {
-                        let file_path = arguments["file_path"].as_str().unwrap();
-                        let contents = std::fs::read_to_string(file_path)?;
-                        messages.push(
-                            json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": contents}),
-                        );
-                    }
-                    if name == "Write" {
-                        let file_path = arguments["file_path"].as_str().unwrap();
-                        let write_contents = arguments["contents"].as_str().unwrap();
-                        let results = std::fs::write(file_path, write_contents)?;
-                        messages.push(
-                            json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": results}),
-                        );
-                    }
+                let name = tool_call["function"]["name"].as_str().unwrap();
+                let arguments: Value =
+                    serde_json::from_str(tool_call["function"]["arguments"].as_str().unwrap())?;
+                if name == "Read" {
+                    let file_path = arguments["file_path"].as_str().unwrap();
+                    let contents = std::fs::read_to_string(file_path)?;
+                    messages.push(
+                        json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": contents}),
+                    );
+                } else if name == "Write" {
+                    let file_path = arguments["file_path"].as_str().unwrap();
+                    let write_contents = arguments["contents"].as_str().unwrap();
+                    let results = std::fs::write(file_path, write_contents)?;
+                    messages.push(
+                        json!({"role": "tool", "tool_call_id": tool_call["id"].as_str(), "content": results}),
+                    );
                 }
             }
         } else if let Some(content) = response["choices"][0]["message"]["content"].as_str() {
